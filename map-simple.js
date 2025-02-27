@@ -239,20 +239,56 @@ function highlightFeatureByProperties(veredaName, municipalityName, departmentNa
 
   // Set up a style function for the veredas layer
   veredasLayer.setStyle(function(feature) {
+    // Get the current zoom level
+    const zoom = map ? map.getView().getZoom() : 0;
+
     if (matchesSearchResult(feature)) {
       highlightedFeature = feature;
       return highlightStyle;
     } else {
-      // Return the default style
-      return new ol.style.Style({
+      // Base style for the vereda boundaries (same as original)
+      const baseStyle = new ol.style.Style({
         stroke: new ol.style.Stroke({
-          color: 'rgba(0, 0, 255, 0.7)',
-          width: 1,
+          color: CONFIG.veredaBorderColor,
+          width: CONFIG.veredaBorderWidth,
         }),
         fill: new ol.style.Fill({
-          color: 'rgba(0, 0, 255, 0.1)',
+          color: 'rgba(255, 255, 255, 0)',
         }),
       });
+
+      // Only add text labels at high zoom levels (same as original)
+      if (zoom > CONFIG.labelZoomThreshold) {
+        const veredaName = feature.get('NOMBRE_VER');
+
+        if (veredaName) {
+          // Create text style for the vereda name
+          const textStyle = new ol.style.Style({
+            text: new ol.style.Text({
+              text: veredaName,
+              font: CONFIG.labelFont,
+              fill: new ol.style.Fill({
+                color: CONFIG.labelTextColor
+              }),
+              stroke: new ol.style.Stroke({
+                color: CONFIG.labelStrokeColor,
+                width: CONFIG.labelStrokeWidth
+              }),
+              overflow: true,
+              placement: 'point',
+              maxAngle: 45,
+              offsetY: 0
+            }),
+            zIndex: 2
+          });
+
+          // Return both styles (boundary and text)
+          return [baseStyle, textStyle];
+        }
+      }
+
+      // Return only the base style if not showing text
+      return baseStyle;
     }
   });
 }
@@ -269,6 +305,12 @@ async function loadVeredasData() {
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
       initializeSearch();
+
+      // Move the search container to the right to avoid covering map elements
+      const searchContainer = document.querySelector('.search-container');
+      if (searchContainer) {
+        searchContainer.style.left = '50px'; // Move right from 10px to 50px
+      }
     }
   } catch (error) {
     console.error('Error loading veredas data:', error);
@@ -416,7 +458,6 @@ map.on('pointermove', function(e) {
         }
 
         htmlContent += '</div>';
-
         content.innerHTML = htmlContent;
         overlay.setPosition(e.coordinate);
       }, CONFIG.hoverPopupDelay);
@@ -446,6 +487,59 @@ map.on('movestart', function() {
 
 // Modify the click handler to set the isPopupFromClick flag
 map.on('click', function(evt) {
+  // Always reset any existing highlight first
+  highlightedFeature = null;
+
+  // Reset to original style function
+  veredasLayer.setStyle(function(feature, resolution) {
+    // Get the current zoom level
+    const zoom = map ? map.getView().getZoom() : 0;
+
+    // Base style for the vereda boundaries
+    const baseStyle = new ol.style.Style({
+      stroke: new ol.style.Stroke({
+        color: CONFIG.veredaBorderColor,
+        width: CONFIG.veredaBorderWidth,
+      }),
+      fill: new ol.style.Fill({
+        color: 'rgba(255, 255, 255, 0)',
+      }),
+    });
+
+    // Only add text labels at high zoom levels
+    if (zoom > CONFIG.labelZoomThreshold) {
+      const veredaName = feature.get('NOMBRE_VER');
+
+      if (veredaName) {
+        // Create text style for the vereda name
+        const textStyle = new ol.style.Style({
+          text: new ol.style.Text({
+            text: veredaName,
+            font: CONFIG.labelFont,
+            fill: new ol.style.Fill({
+              color: CONFIG.labelTextColor
+            }),
+            stroke: new ol.style.Stroke({
+              color: CONFIG.labelStrokeColor,
+              width: CONFIG.labelStrokeWidth
+            }),
+            overflow: true,
+            placement: 'point',
+            maxAngle: 45,
+            offsetY: 0
+          }),
+          zIndex: 2
+        });
+
+        // Return both styles (boundary and text)
+        return [baseStyle, textStyle];
+      }
+    }
+
+    // Return only the base style if not showing text
+    return baseStyle;
+  });
+
   const feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) {
     return feature;
   });
@@ -489,18 +583,6 @@ map.on('click', function(evt) {
 
     // Reset the flag
     isPopupFromClick = false;
-
-    // If clicking away from features, reset the highlight
-    highlightedFeature = null;
-    veredasLayer.setStyle(new ol.style.Style({
-      stroke: new ol.style.Stroke({
-        color: 'rgba(0, 0, 255, 0.7)',
-        width: 1,
-      }),
-      fill: new ol.style.Fill({
-        color: 'rgba(0, 0, 255, 0.1)',
-      }),
-    }));
   }
 });
 
