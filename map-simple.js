@@ -322,6 +322,22 @@ let isPopupFromClick = false; // Flag to track if popup is from click or hover
 let hoverTimer = null; // Timer for delayed hover popup
 
 map.on('pointermove', function(e) {
+  // Get current zoom level
+  const zoom = map.getView().getZoom();
+
+  // Don't show hover popup if zoom level is too low (below 10)
+  if (zoom < 10) {
+    map.getViewport().style.cursor = '';
+    if (hoverTimer) {
+      clearTimeout(hoverTimer);
+      hoverTimer = null;
+    }
+    if (!isPopupFromClick) {
+      overlay.setPosition(undefined);
+    }
+    return;
+  }
+
   // Don't show hover popup if the popup is currently displayed from a click
   if (isPopupFromClick) {
     return;
@@ -346,7 +362,7 @@ map.on('pointermove', function(e) {
     });
 
     if (feature) {
-      // Set a timer to show the popup after 1 second
+      // Set a timer to show the popup after 400ms
       hoverTimer = setTimeout(function() {
         hoverFeature = feature;
         const properties = feature.getProperties();
@@ -374,7 +390,7 @@ map.on('pointermove', function(e) {
 
         content.innerHTML = htmlContent;
         overlay.setPosition(e.coordinate);
-      }, 400); // 1000ms = 1 second delay
+      }, 400);
     }
   } else {
     // Only hide the popup if it's not from a click
