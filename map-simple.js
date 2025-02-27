@@ -1,3 +1,32 @@
+// Configuration constants that might need tweaking
+const CONFIG = {
+  // Map settings
+  initialCenter: [-74.0, 4.7], // Center on Colombia (Bogotá)
+  initialZoom: 6,
+
+  // Layer styling
+  veredaBorderColor: 'rgba(0, 0, 255, 0.5)',
+  veredaBorderWidth: 0.8,
+  highlightBorderColor: 'rgba(255, 0, 0, 1)',
+  highlightBorderWidth: 3,
+  highlightFillColor: 'rgba(255, 0, 0, 0.3)',
+
+  // Text labels
+  labelZoomThreshold: 13, // Show vereda labels above this zoom
+  labelFont: 'bold 12px Arial, sans-serif',
+  labelTextColor: '#000000',
+  labelStrokeColor: '#FFFFFF',
+  labelStrokeWidth: 3,
+
+  // Hover and popup behavior
+  hoverZoomThreshold: 10, // Enable hover popups above this zoom
+  hoverPopupDelay: 400, // ms delay before showing hover popup
+
+  // Satellite imagery
+  satelliteMaxZoom: 17,
+  satelliteOverZoomThreshold: 19 // Show warning above this zoom
+};
+
 // Set up the map to use geographic coordinates
 ol.proj.useGeographic();
 
@@ -15,16 +44,16 @@ const veredasLayer = new ol.layer.VectorTile({
     // Base style for the vereda boundaries
     const baseStyle = new ol.style.Style({
       stroke: new ol.style.Stroke({
-        color: 'rgba(0, 0, 255, 0.5)',
-        width: 0.8,
+        color: CONFIG.veredaBorderColor,
+        width: CONFIG.veredaBorderWidth,
       }),
       fill: new ol.style.Fill({
         color: 'rgba(255, 255, 255, 0)',
       }),
     });
 
-    // Only add text labels at high zoom levels (zoom > 10)
-    if (zoom > 13) {
+    // Only add text labels at high zoom levels
+    if (zoom > CONFIG.labelZoomThreshold) {
       const veredaName = feature.get('NOMBRE_VER');
 
       if (veredaName) {
@@ -32,13 +61,13 @@ const veredasLayer = new ol.layer.VectorTile({
         const textStyle = new ol.style.Style({
           text: new ol.style.Text({
             text: veredaName,
-            font: 'bold 12px Arial, sans-serif',
+            font: CONFIG.labelFont,
             fill: new ol.style.Fill({
-              color: '#000000'
+              color: CONFIG.labelTextColor
             }),
             stroke: new ol.style.Stroke({
-              color: '#FFFFFF',
-              width: 3
+              color: CONFIG.labelStrokeColor,
+              width: CONFIG.labelStrokeWidth
             }),
             overflow: true,
             placement: 'point',
@@ -93,7 +122,7 @@ const satelliteLayer = new ol.layer.Tile({
   source: new ol.source.XYZ({
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attributions: ['Esri, Maxar, Earthstar Geographics, and the GIS User Community'],
-    maxZoom: 17,
+    maxZoom: CONFIG.satelliteMaxZoom,
     // Use lower resolution tiles when zoomed beyond maxZoom
     tileLoadFunction: function(imageTile, src) {
       const tileCoord = imageTile.getTileCoord();
@@ -101,17 +130,17 @@ const satelliteLayer = new ol.layer.Tile({
       const originalZ = z;
 
       // If requested zoom is beyond maxZoom, adjust the URL to use the maxZoom tiles
-      if (z > 19) {
+      if (z > CONFIG.satelliteOverZoomThreshold) {
         const x = tileCoord[1];
         const y = tileCoord[2];
 
         // Calculate the equivalent tile coordinates at maxZoom
-        const factor = Math.pow(2, z - 19);
+        const factor = Math.pow(2, z - CONFIG.satelliteOverZoomThreshold);
         const adjustedX = Math.floor(x / factor);
         const adjustedY = Math.floor(y / factor);
 
         // Modify the source URL to request the lower zoom tile
-        src = src.replace(`/${z}/${y}/${x}`, `/19/${adjustedY}/${adjustedX}`);
+        src = src.replace(`/${z}/${y}/${x}`, `/${CONFIG.satelliteOverZoomThreshold}/${adjustedY}/${adjustedX}`);
       }
 
       // Load the image
@@ -119,7 +148,7 @@ const satelliteLayer = new ol.layer.Tile({
       img.src = src;
 
       // Add a class to indicate this is a lower resolution tile if needed
-      if (originalZ > 19) {
+      if (originalZ > CONFIG.satelliteOverZoomThreshold) {
         img.classList.add('lower-resolution-tile');
       }
     }
@@ -143,8 +172,8 @@ const map = new ol.Map({
     veredasLayer
   ],
   view: new ol.View({
-    center: [-74.0, 4.7], // Center on Colombia (Bogotá)
-    zoom: 6,
+    center: CONFIG.initialCenter,
+    zoom: CONFIG.initialZoom,
   }),
 });
 
@@ -187,11 +216,11 @@ let highlightedFeature = null;
 // Create a style for highlighted features
 const highlightStyle = new ol.style.Style({
   stroke: new ol.style.Stroke({
-    color: 'rgba(255, 0, 0, 1)',
-    width: 3,
+    color: CONFIG.highlightBorderColor,
+    width: CONFIG.highlightBorderWidth,
   }),
   fill: new ol.style.Fill({
-    color: 'rgba(255, 0, 0, 0.3)',
+    color: CONFIG.highlightFillColor,
   }),
 });
 
@@ -325,8 +354,8 @@ map.on('pointermove', function(e) {
   // Get current zoom level
   const zoom = map.getView().getZoom();
 
-  // Don't show hover popup if zoom level is too low (below 10)
-  if (zoom < 10) {
+  // Don't show hover popup if zoom level is too low
+  if (zoom < CONFIG.hoverZoomThreshold) {
     map.getViewport().style.cursor = '';
     if (hoverTimer) {
       clearTimeout(hoverTimer);
@@ -362,7 +391,7 @@ map.on('pointermove', function(e) {
     });
 
     if (feature) {
-      // Set a timer to show the popup after 400ms
+      // Set a timer to show the popup after delay
       hoverTimer = setTimeout(function() {
         hoverFeature = feature;
         const properties = feature.getProperties();
@@ -390,7 +419,7 @@ map.on('pointermove', function(e) {
 
         content.innerHTML = htmlContent;
         overlay.setPosition(e.coordinate);
-      }, 400);
+      }, CONFIG.hoverPopupDelay);
     }
   } else {
     // Only hide the popup if it's not from a click
@@ -497,7 +526,7 @@ function updateZoomWarning() {
   const zoom = map.getView().getZoom();
   const warningElement = document.getElementById('zoom-warning');
 
-  if (zoom > 19 && satelliteLayer.getVisible()) {
+  if (zoom > CONFIG.satelliteOverZoomThreshold && satelliteLayer.getVisible()) {
     if (!warningElement) {
       const warning = document.createElement('div');
       warning.id = 'zoom-warning';
