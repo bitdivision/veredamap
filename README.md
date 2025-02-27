@@ -1,4 +1,6 @@
 # Vereda Map
+
+View the map: [https://bitdivision.github.io/veredamap/](https://bitdivision.github.io/veredamap/)
 This is a basic map showing the veredas of Colombia. A vereda is the smallest administrative unit in Colombia.
 
 Annoyingly, google maps does not seem to have data for veredas and often searching for veredas will return no results.
