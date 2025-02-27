@@ -1,12 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Colombia Veredas Map with PMTiles</title>
+    <title>Colombia Veredas Interactive Map - Explore and Search Colombian Administrative Divisions</title>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Interactive map of Colombia's veredas (administrative divisions). Search and explore departments, municipalities, and veredas with satellite imagery and detailed information." />
+    <meta name="keywords" content="Colombia, veredas, map, search veredas,interactive map, Colombian administrative divisions, departments, municipalities, geographic data, Colombia map" />
+    <meta name="author" content="Richard Webb" />
+
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="Colombia Veredas Interactive Map" />
+    <meta property="og:description" content="Explore Colombia's administrative divisions with this interactive map featuring departments, municipalities, and veredas." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://bitdivision.github.io/veredamap/" />
+    <meta property="og:image" content="https://bitdivision.github.io/veredamap/preview-image.jpg" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://bitdivision.github.io/veredamap/" />
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.4.0/ol.css">
     <style>
         body { margin: 0; padding: 0; }
@@ -95,8 +111,14 @@
     </style>
 </head>
 <body>
+    <!-- Add a header with descriptive text (hidden visually but available to search engines) -->
+    <header style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;">
+        <h1>Colombia Veredas Interactive Map</h1>
+        <p>Search and explore Colombia's administrative divisions including departments, municipalities, and veredas. This interactive map provides detailed geographic information with both standard map and satellite imagery views. Data courtesy of Esri Colombia.</p>
+    </header>
+
     <div class="search-container">
-        <input type="text" id="search-input" placeholder="Search for veredas...">
+        <input type="text" id="search-input" placeholder="Search for veredas, municipalities, or departments...">
         <div id="search-results" class="search-results"></div>
     </div>
     <div id="map"></div>
