@@ -5,7 +5,7 @@ ol.proj.useGeographic();
 const veredasLayer = new ol.layer.VectorTile({
   declutter: true,
   source: new olpmtiles.PMTilesVectorSource({
-    url: window.location.origin + '/veredas_simplified.pmtiles',
+    url: './veredas_simplified.pmtiles',
     attributions: ["© Esri Colombia"]
   }),
   style: function(feature, resolution) {
@@ -231,8 +231,8 @@ function highlightFeatureByProperties(veredaName, municipalityName, departmentNa
 // Function to load vereda data for search
 async function loadVeredasData() {
   try {
-    // Updated to use search_index.json instead of veredas-index.json
-    const response = await fetch(window.location.origin + '/search_index.json');
+    // Updated to use relative path instead of window.location.origin
+    const response = await fetch('./search_index.json');
     veredasData = await response.json();
     isDataLoaded = true;
 
